@@ -64,7 +64,7 @@ class PatientDetailsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 20),
-          Row(
+          const Row(
             children: [
               Expanded(
                 child: _MiniStat(
@@ -74,7 +74,7 @@ class PatientDetailsScreen extends ConsumerWidget {
                   gradient: AppColors.primaryGradient,
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(
                 child: _MiniStat(
                   value: '3',

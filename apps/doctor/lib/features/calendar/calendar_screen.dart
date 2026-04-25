@@ -172,7 +172,7 @@ class _CalendarHeader extends StatelessWidget {
               onTap: onToday,
               child: Column(
                 children: [
-                  Text(
+                  const Text(
                     'التقويم',
                     style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600),
                   ),

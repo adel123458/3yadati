@@ -53,12 +53,12 @@ class StatGridSkeleton extends StatelessWidget {
         childAspectRatio: 1.45,
         children: List.generate(
           count,
-          (_) => AppCard(
+          (_) => const AppCard(
             elevated: false,
             color: Colors.white,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 SkeletonBox(width: 44, height: 44, borderRadius: BorderRadius.all(Radius.circular(14))),
                 SizedBox(height: 14),
                 SkeletonBox(width: 60, height: 22),
@@ -94,22 +94,22 @@ class ListSkeleton extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
           ),
           padding: const EdgeInsets.all(14),
-          child: Row(
+          child: const Row(
             children: [
-              const CircleAvatar(radius: 22, backgroundColor: Colors.white),
-              const SizedBox(width: 12),
+              CircleAvatar(radius: 22, backgroundColor: Colors.white),
+              SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     SkeletonBox(width: 140, height: 14),
                     SizedBox(height: 8),
                     SkeletonBox(width: 90, height: 11),
                   ],
                 ),
               ),
-              const SkeletonBox(width: 56, height: 22, borderRadius: BorderRadius.all(Radius.circular(10))),
+              SkeletonBox(width: 56, height: 22, borderRadius: BorderRadius.all(Radius.circular(10))),
             ],
           ),
         ),
@@ -161,15 +161,15 @@ class HeroSkeleton extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(24),
       ),
-      child: _ShimmerWrap(
+      child: const _ShimmerWrap(
         child: Row(
           children: [
-            const CircleAvatar(radius: 28, backgroundColor: Colors.white),
-            const SizedBox(width: 12),
+            CircleAvatar(radius: 28, backgroundColor: Colors.white),
+            SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   SkeletonBox(width: 120, height: 14),
                   SizedBox(height: 8),
                   SkeletonBox(width: 80, height: 12),

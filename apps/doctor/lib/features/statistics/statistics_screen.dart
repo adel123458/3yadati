@@ -102,8 +102,8 @@ class StatisticsScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: const [
+                const Row(
+                  children: [
                     Icon(Icons.show_chart_rounded, color: AppColors.primary, size: 18),
                     SizedBox(width: 8),
                     Text('نظرة عامة على الحجوزات',
@@ -191,7 +191,7 @@ class _BarsChart extends StatelessWidget {
           show: true,
           drawVerticalLine: false,
           getDrawingHorizontalLine: (_) =>
-              FlLine(color: AppColors.divider, strokeWidth: 1),
+              const FlLine(color: AppColors.divider, strokeWidth: 1),
         ),
         borderData: FlBorderData(show: false),
         titlesData: FlTitlesData(
