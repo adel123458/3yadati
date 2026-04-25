@@ -31,3 +31,7 @@ String formatCurrency(double v, [String currency = 'دج']) {
   final formatter = NumberFormat.decimalPattern('ar');
   return '${formatter.format(v)} $currency';
 }
+
+String formatArabicDate(DateTime dt) {
+  return '${formatWeekdayArabic(dt)}، ${DateFormat('d MMMM yyyy', 'ar').format(dt)}';
+}

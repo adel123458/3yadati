@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/widgets/app_card.dart';
+import '../../core/widgets/avatars.dart';
+import '../../core/widgets/skeletons.dart';
 import '../../core/widgets/status_badge.dart';
 import '../../data/models/models.dart';
 import '../../data/repositories.dart';
@@ -44,70 +48,297 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   Widget build(BuildContext context) {
     final apptsAsync = ref.watch(appointmentsProvider(_range));
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('التقويم'),
-        actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.add)),
-        ],
+      backgroundColor: AppColors.background,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {},
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('موعد جديد', style: TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // View mode tabs
+            _CalendarHeader(
+              selected: _selected,
+              onPrev: () {
+                setState(() {
+                  _selected = _selected.subtract(const Duration(days: 1));
+                  _focused = _selected;
+                });
+              },
+              onNext: () {
+                setState(() {
+                  _selected = _selected.add(const Duration(days: 1));
+                  _focused = _selected;
+                });
+              },
+              onToday: () {
+                setState(() {
+                  _selected = DateTime.now();
+                  _focused = DateTime.now();
+                });
+              },
+            ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: SegmentedButton<_ViewMode>(
-                segments: const [
-                  ButtonSegment(value: _ViewMode.day, label: Text('يومي'), icon: Icon(Icons.view_day)),
-                  ButtonSegment(value: _ViewMode.week, label: Text('أسبوعي'), icon: Icon(Icons.view_week)),
-                  ButtonSegment(value: _ViewMode.month, label: Text('شهري'), icon: Icon(Icons.calendar_month)),
-                ],
-                selected: {_mode},
-                onSelectionChanged: (s) => setState(() => _mode = s.first),
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+              child: _ModeSwitcher(
+                mode: _mode,
+                onChanged: (m) => setState(() => _mode = m),
               ),
             ),
-            const SizedBox(height: 8),
-            TableCalendar(
-              firstDay: DateTime.now().subtract(const Duration(days: 365)),
-              lastDay: DateTime.now().add(const Duration(days: 365)),
-              focusedDay: _focused,
-              selectedDayPredicate: (d) => isSameDay(_selected, d),
-              onDaySelected: (sel, foc) => setState(() {
-                _selected = sel;
-                _focused = foc;
+            _WeekStrip(
+              selected: _selected,
+              onSelect: (d) => setState(() {
+                _selected = d;
+                _focused = d;
               }),
-              calendarFormat: _mode == _ViewMode.month
-                  ? CalendarFormat.month
-                  : (_mode == _ViewMode.week ? CalendarFormat.week : CalendarFormat.week),
-              locale: 'ar',
-              startingDayOfWeek: StartingDayOfWeek.sunday,
-              headerStyle: const HeaderStyle(
-                titleCentered: true,
-                formatButtonVisible: false,
-                titleTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-              ),
-              calendarStyle: CalendarStyle(
-                todayDecoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.primary),
-                ),
-                todayTextStyle: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700),
-                selectedDecoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                selectedTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-                weekendTextStyle: const TextStyle(color: AppColors.textSecondary),
-              ),
             ),
-            const Divider(height: 1),
+            if (_mode == _ViewMode.month)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: AppCard(
+                  padding: const EdgeInsets.all(8),
+                  child: TableCalendar(
+                    firstDay: DateTime.now().subtract(const Duration(days: 365)),
+                    lastDay: DateTime.now().add(const Duration(days: 365)),
+                    focusedDay: _focused,
+                    selectedDayPredicate: (d) => isSameDay(_selected, d),
+                    onDaySelected: (sel, foc) => setState(() {
+                      _selected = sel;
+                      _focused = foc;
+                    }),
+                    calendarFormat: CalendarFormat.month,
+                    locale: 'ar',
+                    startingDayOfWeek: StartingDayOfWeek.sunday,
+                    headerStyle: const HeaderStyle(
+                      titleCentered: true,
+                      formatButtonVisible: false,
+                      titleTextStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                    ),
+                    calendarStyle: CalendarStyle(
+                      todayDecoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.primary),
+                      ),
+                      todayTextStyle: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800),
+                      selectedDecoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                      selectedTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+                      weekendTextStyle: const TextStyle(color: AppColors.textSecondary),
+                    ),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 8),
             Expanded(
               child: apptsAsync.when(
                 data: (list) => _AppointmentList(items: list, mode: _mode),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => const Center(child: Text('تعذر التحميل')),
+                loading: () => const ListSkeleton(rows: 6, tileHeight: 84),
+                error: (_, __) => const EmptyState(
+                  icon: Icons.error_outline_rounded,
+                  title: 'تعذر تحميل المواعيد',
+                ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _CalendarHeader extends StatelessWidget {
+  final DateTime selected;
+  final VoidCallback onPrev;
+  final VoidCallback onNext;
+  final VoidCallback onToday;
+  const _CalendarHeader({
+    required this.selected,
+    required this.onPrev,
+    required this.onNext,
+    required this.onToday,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+      child: Row(
+        children: [
+          IconButton(onPressed: onPrev, icon: const Icon(Icons.chevron_right_rounded)),
+          Expanded(
+            child: GestureDetector(
+              onTap: onToday,
+              child: Column(
+                children: [
+                  Text(
+                    'التقويم',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    formatArabicDate(selected),
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppColors.text),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          IconButton(onPressed: onNext, icon: const Icon(Icons.chevron_left_rounded)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ModeSwitcher extends StatelessWidget {
+  final _ViewMode mode;
+  final ValueChanged<_ViewMode> onChanged;
+  const _ModeSwitcher({required this.mode, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const [
+          BoxShadow(color: Color(0x0F0F172A), blurRadius: 14, offset: Offset(0, 4)),
+        ],
+      ),
+      child: Row(
+        children: _ViewMode.values.map((m) {
+          final selected = m == mode;
+          final label = switch (m) {
+            _ViewMode.day => 'يومي',
+            _ViewMode.week => 'أسبوعي',
+            _ViewMode.month => 'شهري',
+          };
+          return Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => onChanged(m),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOut,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  gradient: selected
+                      ? const LinearGradient(
+                          colors: AppColors.primaryGradient,
+                          begin: Alignment.topRight,
+                          end: Alignment.bottomLeft,
+                        )
+                      : null,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: selected ? Colors.white : AppColors.textSecondary,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class _WeekStrip extends StatelessWidget {
+  final DateTime selected;
+  final ValueChanged<DateTime> onSelect;
+  const _WeekStrip({required this.selected, required this.onSelect});
+
+  @override
+  Widget build(BuildContext context) {
+    final start = selected.subtract(Duration(days: selected.weekday % 7));
+    final today = DateTime.now();
+    return SizedBox(
+      height: 86,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        scrollDirection: Axis.horizontal,
+        itemCount: 7,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final d = start.add(Duration(days: i));
+          final isSelected = isSameDay(d, selected);
+          final isToday = isSameDay(d, today);
+          final weekdayShort = DateFormat('EEE', 'ar').format(d);
+          return GestureDetector(
+            onTap: () => onSelect(d),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOut,
+              width: 56,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                gradient: isSelected
+                    ? const LinearGradient(
+                        colors: AppColors.primaryGradient,
+                        begin: Alignment.topRight,
+                        end: Alignment.bottomLeft,
+                      )
+                    : null,
+                color: isSelected ? null : Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: isSelected
+                        ? AppColors.primary.withOpacity(0.30)
+                        : const Color(0x0F0F172A),
+                    blurRadius: isSelected ? 14 : 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+                border: !isSelected && isToday
+                    ? Border.all(color: AppColors.primary.withOpacity(0.5))
+                    : null,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    weekdayShort,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected ? Colors.white.withOpacity(0.85) : AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${d.day}',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: isSelected ? Colors.white : AppColors.text,
+                    ),
+                  ),
+                  if (isToday && !isSelected) ...[
+                    const SizedBox(height: 4),
+                    Container(
+                      width: 5,
+                      height: 5,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -121,68 +352,97 @@ class _AppointmentList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return const Center(child: Text('لا توجد مواعيد', style: TextStyle(color: AppColors.textSecondary)));
+      return const EmptyState(
+        icon: Icons.event_busy_rounded,
+        title: 'لا توجد مواعيد',
+        subtitle: 'يومك خالٍ من الحجوزات. استمتع بوقتك!',
+      );
     }
     final sorted = [...items]..sort((a, b) => a.startAt.compareTo(b.startAt));
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: sorted.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (_, i) {
-        final a = sorted[i];
-        return AppCard(
-          onTap: () => context.push('/appointment/${a.id}'),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          child: Row(
-            children: [
-              Container(
-                width: 4,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: appointmentColor(a.status),
-                  borderRadius: BorderRadius.circular(2),
-                ),
+    return AnimationLimiter(
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+        itemCount: sorted.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        itemBuilder: (_, i) {
+          final a = sorted[i];
+          return AnimationConfiguration.staggeredList(
+            position: i,
+            duration: const Duration(milliseconds: 360),
+            child: SlideAnimation(
+              verticalOffset: 16,
+              child: FadeInAnimation(
+                child: _AppointmentTile(a: a, showDate: mode != _ViewMode.day),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _AppointmentTile extends StatelessWidget {
+  final Appointment a;
+  final bool showDate;
+  const _AppointmentTile({required this.a, required this.showDate});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = appointmentColor(a.status);
+    return AppCard(
+      onTap: () => context.push('/appointment/${a.id}'),
+      padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 5,
+            height: 64,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+          const SizedBox(width: 10),
+          GradientAvatar(name: a.patient?.fullName ?? 'موعد', size: 46),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  a.patient?.fullName ?? 'بدون مريض',
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5),
+                ),
+                const SizedBox(height: 4),
+                Text(a.reason ?? 'استشارة',
+                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                const SizedBox(height: 6),
+                Row(
                   children: [
+                    Icon(Icons.access_time_rounded, size: 13, color: color),
+                    const SizedBox(width: 4),
                     Text(
-                      a.patient?.fullName ?? 'بدون مريض',
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                      '${formatTimeArabic(a.startAt)} - ${formatTimeArabic(a.endAt)}',
+                      style: TextStyle(fontSize: 11.5, color: color, fontWeight: FontWeight.w700),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      a.reason ?? 'استشارة',
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(Icons.access_time, size: 14, color: AppColors.textSecondary),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${formatTimeArabic(a.startAt)} - ${formatTimeArabic(a.endAt)}',
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                        ),
-                        if (mode != _ViewMode.day) ...[
-                          const SizedBox(width: 12),
-                          const Icon(Icons.calendar_today, size: 12, color: AppColors.textSecondary),
-                          const SizedBox(width: 4),
-                          Text(formatDateArabic(a.startAt),
-                              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                        ],
-                      ],
-                    ),
+                    if (showDate) ...[
+                      const SizedBox(width: 10),
+                      const Icon(Icons.calendar_today_rounded, size: 11, color: AppColors.textSecondary),
+                      const SizedBox(width: 4),
+                      Text(formatDateArabic(a.startAt),
+                          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                    ],
                   ],
                 ),
-              ),
-              StatusBadge(status: a.status, small: true),
-            ],
+              ],
+            ),
           ),
-        );
-      },
+          const SizedBox(width: 8),
+          StatusBadge(status: a.status, small: true),
+        ],
+      ),
     );
   }
 }

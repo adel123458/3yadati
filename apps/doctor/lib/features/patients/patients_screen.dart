@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_card.dart';
+import '../../core/widgets/avatars.dart';
+import '../../core/widgets/skeletons.dart';
 import '../../data/repositories.dart';
 
 class PatientsScreen extends ConsumerStatefulWidget {
@@ -19,6 +22,7 @@ class _PatientsScreenState extends ConsumerState<PatientsScreen> {
   Widget build(BuildContext context) {
     final patients = ref.watch(patientsProvider(_q));
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('المرضى')),
       body: SafeArea(
         child: Column(
@@ -27,9 +31,16 @@ class _PatientsScreenState extends ConsumerState<PatientsScreen> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: TextField(
                 onChanged: (v) => setState(() => _q = v),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'ابحث عن مريض بالاسم أو الرقم',
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: Container(
+                    margin: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.search_rounded, color: AppColors.primary),
+                  ),
                 ),
               ),
             ),
@@ -37,48 +48,84 @@ class _PatientsScreenState extends ConsumerState<PatientsScreen> {
               child: patients.when(
                 data: (list) {
                   if (list.isEmpty) {
-                    return const Center(child: Text('لا يوجد مرضى', style: TextStyle(color: AppColors.textSecondary)));
+                    return const EmptyState(
+                      icon: Icons.person_search_rounded,
+                      title: 'لا يوجد مرضى',
+                      subtitle: 'حاول البحث بكلمة أخرى أو أضف مريضًا جديدًا.',
+                    );
                   }
-                  return ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: list.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (_, i) {
-                      final p = list[i];
-                      return AppCard(
-                        onTap: () => context.push('/patient/${p.id}'),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: p.gender == 'FEMALE'
-                                  ? const Color(0xFFFCE7F3)
-                                  : AppColors.primaryLight,
-                              child: Icon(
-                                p.gender == 'FEMALE' ? Icons.face_3 : Icons.face,
-                                color: p.gender == 'FEMALE' ? const Color(0xFFEC4899) : AppColors.primary,
+                  return AnimationLimiter(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                      itemCount: list.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (_, i) {
+                        final p = list[i];
+                        return AnimationConfiguration.staggeredList(
+                          position: i,
+                          duration: const Duration(milliseconds: 350),
+                          child: SlideAnimation(
+                            verticalOffset: 16,
+                            child: FadeInAnimation(
+                              child: AppCard(
+                                onTap: () => context.push('/patient/${p.id}'),
+                                padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
+                                child: Row(
+                                  children: [
+                                    GradientAvatar(name: p.fullName, size: 46),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(p.fullName,
+                                              style: const TextStyle(fontWeight: FontWeight.w800)),
+                                          const SizedBox(height: 4),
+                                          Text(p.phone ?? '',
+                                              style: const TextStyle(
+                                                  fontSize: 12, color: AppColors.textSecondary)),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: (p.gender == 'FEMALE'
+                                                ? AppColors.pink
+                                                : AppColors.info)
+                                            .withOpacity(0.10),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Text(
+                                        p.gender == 'FEMALE' ? 'أنثى' : 'ذكر',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: p.gender == 'FEMALE'
+                                              ? AppColors.pink
+                                              : AppColors.info,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    const Icon(Icons.chevron_left_rounded,
+                                        color: AppColors.textMuted),
+                                  ],
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(p.fullName, style: const TextStyle(fontWeight: FontWeight.w700)),
-                                  const SizedBox(height: 4),
-                                  Text(p.phone ?? '', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                                ],
-                              ),
-                            ),
-                            const Icon(Icons.chevron_left, color: AppColors.textMuted),
-                          ],
-                        ),
-                      );
-                    },
+                          ),
+                        );
+                      },
+                    ),
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => const Center(child: Text('تعذر التحميل')),
+                loading: () => const ListSkeleton(rows: 6),
+                error: (_, __) => const EmptyState(
+                  icon: Icons.error_outline_rounded,
+                  title: 'تعذر تحميل القائمة',
+                ),
               ),
             ),
           ],
@@ -86,8 +133,8 @@ class _PatientsScreenState extends ConsumerState<PatientsScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {},
-        icon: const Icon(Icons.person_add),
-        label: const Text('مريض جديد'),
+        icon: const Icon(Icons.person_add_rounded),
+        label: const Text('مريض جديد', style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
