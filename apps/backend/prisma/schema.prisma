@@ -1,0 +1,281 @@
+// 3yadati - Prisma schema
+// Shared database for both Doctor app and Patient app.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===== Users & Auth =====
+
+enum UserRole {
+  DOCTOR
+  ASSISTANT
+  CENTER_MANAGER
+  PATIENT
+  ADMIN
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  phone        String?   @unique
+  passwordHash String
+  fullName     String
+  role         UserRole  @default(DOCTOR)
+  avatarUrl    String?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  doctor       Doctor?
+  patient      Patient?
+  assistantOf  Doctor?   @relation("AssistantDoctor", fields: [assistantOfId], references: [id])
+  assistantOfId String?
+
+  notifications Notification[]
+}
+
+// ===== Doctor / Center =====
+
+model Specialty {
+  id      String   @id @default(cuid())
+  nameAr  String
+  nameEn  String
+  icon    String?
+  doctors Doctor[]
+}
+
+model Doctor {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  specialtyId   String?
+  specialty     Specialty? @relation(fields: [specialtyId], references: [id])
+
+  bio           String?
+  yearsOfExperience Int?
+  consultationPrice Decimal? @db.Decimal(10, 2)
+  currency      String    @default("DZD")
+
+  // For medical centers we keep one Doctor record but mark it as a center
+  isCenter      Boolean   @default(false)
+  centerName    String?
+
+  // Algeria-specific: wilaya (province) code (01–58) and cached Arabic name
+  wilayaCode    String?
+  wilayaNameAr  String?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  branches      Branch[]
+  workingHours  WorkingHour[]
+  appointments  Appointment[]
+  patients      DoctorPatient[]
+  assistants    User[]   @relation("AssistantDoctor")
+  holidays      Holiday[]
+}
+
+// ===== Branches & Locations =====
+
+model Branch {
+  id          String   @id @default(cuid())
+  doctorId    String
+  doctor      Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  name        String
+  phone       String?
+  address     String
+  city        String?
+  country     String?  @default("Algeria")
+  latitude    Float?
+  longitude   Float?
+  isPrimary   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workingHours WorkingHour[]
+  appointments Appointment[]
+}
+
+// ===== Working hours =====
+
+enum Weekday {
+  SUNDAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+}
+
+model WorkingHour {
+  id          String   @id @default(cuid())
+  doctorId    String
+  doctor      Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  branchId    String?
+  branch      Branch?  @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  weekday     Weekday
+  startTime   String   // "HH:mm"
+  endTime     String   // "HH:mm"
+  slotMinutes Int      @default(30)
+  breakStart  String?  // "HH:mm"
+  breakEnd    String?  // "HH:mm"
+  isClosed    Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([doctorId, weekday])
+}
+
+model Holiday {
+  id        String   @id @default(cuid())
+  doctorId  String
+  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  date      DateTime
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@unique([doctorId, date])
+}
+
+// ===== Patients =====
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model Patient {
+  id          String    @id @default(cuid())
+  userId      String?   @unique
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  fullName    String
+  phone       String?
+  email       String?
+  birthDate   DateTime?
+  gender      Gender?
+  address     String?
+  notes       String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  appointments Appointment[]
+  doctorLinks  DoctorPatient[]
+
+  @@index([phone])
+}
+
+// Many-to-many relation so a patient can be tracked by multiple doctors/centers.
+model DoctorPatient {
+  doctorId    String
+  patientId   String
+  doctor      Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  firstVisit  DateTime?
+  lastVisit   DateTime?
+  privateNote String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@id([doctorId, patientId])
+}
+
+// ===== Appointments =====
+
+enum AppointmentStatus {
+  AVAILABLE   // generated empty slot
+  PENDING     // patient requested, awaiting confirmation
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+  CLOSED      // doctor manually closed slot
+}
+
+enum AppointmentType {
+  CONSULTATION
+  FOLLOW_UP
+  PROCEDURE
+  TELEMEDICINE
+  OTHER
+}
+
+model Appointment {
+  id          String             @id @default(cuid())
+  code        String?            @unique
+  doctorId    String
+  doctor      Doctor             @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  branchId    String?
+  branch      Branch?            @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  patientId   String?
+  patient     Patient?           @relation(fields: [patientId], references: [id], onDelete: SetNull)
+
+  startAt     DateTime
+  endAt       DateTime
+  status      AppointmentStatus  @default(AVAILABLE)
+  type        AppointmentType    @default(CONSULTATION)
+  reason      String?
+  internalNotes String?
+  cancelledReason String?
+  isManual    Boolean            @default(false)
+
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([doctorId, startAt])
+  @@index([branchId, startAt])
+  @@index([status])
+}
+
+// ===== Notifications =====
+
+enum NotificationType {
+  APPOINTMENT_CREATED
+  APPOINTMENT_CONFIRMED
+  APPOINTMENT_CANCELLED
+  APPOINTMENT_RESCHEDULED
+  REMINDER
+  SYSTEM
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, read])
+}
+
+// Push tokens for FCM/APNs (used later by the patient and doctor apps).
+model PushToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  platform  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
