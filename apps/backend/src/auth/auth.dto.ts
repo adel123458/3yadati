@@ -32,6 +32,10 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   specialtyId?: string;
+
+  @IsOptional()
+  @IsString()
+  wilayaCode?: string;
 }
 
 export class LoginDto {

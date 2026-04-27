@@ -11,6 +11,11 @@ import {
 import { SlotsService } from './slots.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
+function generateAppointmentCode(): string {
+  const n = Date.now().toString().slice(-8);
+  return `APT-${n}`;
+}
+
 @Injectable()
 export class AppointmentsService {
   constructor(
@@ -80,6 +85,7 @@ export class AppointmentsService {
 
     const data: Prisma.AppointmentCreateInput = {
       doctor: { connect: { id: doctorId } },
+      code: generateAppointmentCode(),
       startAt: start,
       endAt: end,
       status: dto.status ?? 'CONFIRMED',

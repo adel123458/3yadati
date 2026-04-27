@@ -424,7 +424,13 @@ class _UpcomingTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            GradientAvatar(name: a.patient?.fullName ?? 'موعد', size: 38),
+            Hero(
+              tag: 'appt-avatar-${a.id}',
+              child: Material(
+                color: Colors.transparent,
+                child: GradientAvatar(name: a.patient?.fullName ?? 'موعد', size: 38),
+              ),
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(

@@ -4,6 +4,7 @@ import * as argon2 from 'argon2';
 import { UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto, LoginDto } from './auth.dto';
+import { WILAYAS } from '../common/algeria-wilayas';
 
 @Injectable()
 export class AuthService {
@@ -32,6 +33,10 @@ export class AuthService {
                   isCenter: dto.isCenter || false,
                   centerName: dto.centerName,
                   specialtyId: dto.specialtyId,
+                  wilayaCode: dto.wilayaCode,
+                  wilayaNameAr: dto.wilayaCode
+                    ? WILAYAS.find((w) => w.code === dto.wilayaCode)?.nameAr
+                    : undefined,
                 },
               },
             }

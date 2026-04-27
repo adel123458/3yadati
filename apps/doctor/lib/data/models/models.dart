@@ -49,6 +49,8 @@ class DoctorProfile {
   final Specialty? specialty;
   final List<Branch> branches;
   final User? user;
+  final String? wilayaCode;
+  final String? wilayaNameAr;
 
   const DoctorProfile({
     required this.id,
@@ -61,6 +63,8 @@ class DoctorProfile {
     this.specialty,
     this.branches = const [],
     this.user,
+    this.wilayaCode,
+    this.wilayaNameAr,
   });
 
   factory DoctorProfile.fromJson(Map<String, dynamic> j) => DoctorProfile(
@@ -78,6 +82,8 @@ class DoctorProfile {
             .map((b) => Branch.fromJson(b as Map<String, dynamic>))
             .toList(),
         user: j['user'] is Map<String, dynamic> ? User.fromJson(j['user'] as Map<String, dynamic>) : null,
+        wilayaCode: j['wilayaCode'] as String?,
+        wilayaNameAr: j['wilayaNameAr'] as String?,
       );
 }
 
@@ -173,6 +179,7 @@ class Appointment {
   final AppointmentStatus status;
   final String? reason;
   final String? internalNotes;
+  final String? code;
   final Patient? patient;
   final Branch? branch;
 
@@ -183,6 +190,7 @@ class Appointment {
     required this.status,
     this.reason,
     this.internalNotes,
+    this.code,
     this.patient,
     this.branch,
   });
@@ -194,6 +202,7 @@ class Appointment {
         status: AppointmentStatus.parse(j['status'] as String? ?? 'AVAILABLE'),
         reason: j['reason'] as String?,
         internalNotes: j['internalNotes'] as String?,
+        code: j['code'] as String?,
         patient: j['patient'] is Map<String, dynamic> ? Patient.fromJson(j['patient'] as Map<String, dynamic>) : null,
         branch: j['branch'] is Map<String, dynamic> ? Branch.fromJson(j['branch'] as Map<String, dynamic>) : null,
       );

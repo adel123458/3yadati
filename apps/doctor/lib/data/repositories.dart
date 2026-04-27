@@ -181,6 +181,7 @@ class AuthRepo {
     required String fullName,
     String? phone,
     String? specialtyId,
+    String? wilayaCode,
     bool isCenter = false,
     String? centerName,
   }) async {
@@ -191,6 +192,7 @@ class AuthRepo {
         'fullName': fullName,
         if (phone != null) 'phone': phone,
         if (specialtyId != null) 'specialtyId': specialtyId,
+        if (wilayaCode != null) 'wilayaCode': wilayaCode,
         if (isCenter) 'isCenter': true,
         if (centerName != null) 'centerName': centerName,
       });

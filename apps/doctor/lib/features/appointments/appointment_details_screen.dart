@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/formatters.dart';
@@ -78,7 +79,14 @@ class _Body extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  GradientAvatar(name: a.patient?.fullName ?? 'موعد', size: 56),
+                  Hero(
+                    tag: 'appt-avatar-${a.id}',
+                    child: Material(
+                      color: Colors.transparent,
+                      child: GradientAvatar(
+                          name: a.patient?.fullName ?? 'موعد', size: 56),
+                    ),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -186,6 +194,11 @@ class _Body extends ConsumerWidget {
             ],
           ),
         ),
+        const SizedBox(height: 16),
+        _QrCard(code: a.code ?? 'APT-${a.id}')
+            .animate()
+            .fadeIn(duration: 420.ms, delay: 180.ms)
+            .slideY(begin: 0.08),
         const SizedBox(height: 16),
         Row(
           children: [
@@ -375,6 +388,83 @@ class _StatusTimeline extends StatelessWidget {
           ),
         );
       }),
+    );
+  }
+}
+
+class _QrCard extends StatelessWidget {
+  final String code;
+  const _QrCard({required this.code});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.qr_code_2_rounded, color: AppColors.violet, size: 18),
+              SizedBox(width: 8),
+              Text('رمز الموعد',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'يُعرض على المريض للتحقّق عند الوصول، أو يُمسح من شاشة المسح.',
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 11.5),
+          ),
+          const SizedBox(height: 14),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.violetLight),
+                boxShadow: const [
+                  BoxShadow(
+                    color: AppColors.softShadow,
+                    blurRadius: 18,
+                    offset: Offset(0, 6),
+                    spreadRadius: -4,
+                  ),
+                ],
+              ),
+              child: QrImageView(
+                data: code,
+                size: 150,
+                backgroundColor: Colors.white,
+                eyeStyle: const QrEyeStyle(
+                  eyeShape: QrEyeShape.circle,
+                  color: AppColors.violet,
+                ),
+                dataModuleStyle: const QrDataModuleStyle(
+                  dataModuleShape: QrDataModuleShape.circle,
+                  color: AppColors.text,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.violetLight,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text(code,
+                  style: const TextStyle(
+                      color: AppColors.violet,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -12,6 +12,8 @@ import { PatientsModule } from './patients/patients.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { HealthController } from './common/health.controller';
+import { CatalogController } from './common/catalog.controller';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -26,8 +28,9 @@ import { HealthController } from './common/health.controller';
     PatientsModule,
     StatisticsModule,
     NotificationsModule,
+    AdminModule,
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, CatalogController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

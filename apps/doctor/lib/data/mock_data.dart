@@ -19,6 +19,8 @@ class MockData {
         specialty: const Specialty(id: 'cardio', nameAr: 'طب القلب', nameEn: 'Cardiology'),
         branches: branches,
         user: user,
+        wilayaCode: '16',
+        wilayaNameAr: 'الجزائر العاصمة',
       );
 
   static List<Branch> get branches => const [
@@ -58,13 +60,13 @@ class MockData {
     final today = DateTime(now.year, now.month, now.day);
     DateTime t(int h, int m) => today.add(Duration(hours: h, minutes: m));
     return [
-      Appointment(id: 'a1', startAt: t(9, 0), endAt: t(9, 30), status: AppointmentStatus.confirmed, reason: 'استشارة قلبية', patient: patients[0]),
-      Appointment(id: 'a2', startAt: t(10, 30), endAt: t(11, 0), status: AppointmentStatus.confirmed, reason: 'متابعة حالة', patient: patients[2]),
-      Appointment(id: 'a3', startAt: t(11, 0), endAt: t(11, 30), status: AppointmentStatus.pending, reason: 'تخطيط قلب', patient: patients[1]),
-      Appointment(id: 'a4', startAt: t(13, 30), endAt: t(14, 0), status: AppointmentStatus.confirmed, reason: 'فحص دوري', patient: patients[3]),
-      Appointment(id: 'a5', startAt: t(14, 30), endAt: t(15, 0), status: AppointmentStatus.pending, reason: 'متابعة نتائج', patient: patients[4]),
-      Appointment(id: 'a6', startAt: t(15, 0), endAt: t(15, 30), status: AppointmentStatus.confirmed, reason: 'استشارة قلبية', patient: patients[5]),
-      Appointment(id: 'a7', startAt: t(16, 0), endAt: t(16, 30), status: AppointmentStatus.cancelled, reason: 'استشارة قلبية', patient: patients[6]),
+      Appointment(id: 'a1', code: 'APT-100001', startAt: t(9, 0), endAt: t(9, 30), status: AppointmentStatus.confirmed, reason: 'استشارة قلبية', patient: patients[0]),
+      Appointment(id: 'a2', code: 'APT-100002', startAt: t(10, 30), endAt: t(11, 0), status: AppointmentStatus.confirmed, reason: 'متابعة حالة', patient: patients[2]),
+      Appointment(id: 'a3', code: 'APT-100003', startAt: t(11, 0), endAt: t(11, 30), status: AppointmentStatus.pending, reason: 'تخطيط قلب', patient: patients[1]),
+      Appointment(id: 'a4', code: 'APT-100004', startAt: t(13, 30), endAt: t(14, 0), status: AppointmentStatus.confirmed, reason: 'فحص دوري', patient: patients[3]),
+      Appointment(id: 'a5', code: 'APT-100005', startAt: t(14, 30), endAt: t(15, 0), status: AppointmentStatus.pending, reason: 'متابعة نتائج', patient: patients[4]),
+      Appointment(id: 'a6', code: 'APT-100006', startAt: t(15, 0), endAt: t(15, 30), status: AppointmentStatus.confirmed, reason: 'استشارة قلبية', patient: patients[5]),
+      Appointment(id: 'a7', code: 'APT-100007', startAt: t(16, 0), endAt: t(16, 30), status: AppointmentStatus.cancelled, reason: 'استشارة قلبية', patient: patients[6]),
     ];
   }
 

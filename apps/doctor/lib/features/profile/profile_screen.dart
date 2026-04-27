@@ -53,16 +53,22 @@ class ProfileScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
                     Text(d.user?.fullName ?? '',
                         style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w800)),
-                    if (d.specialty != null) ...[
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.20),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Text(d.specialty!.nameAr,
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12)),
+                    if (d.specialty != null || d.wilayaNameAr != null) ...[
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          if (d.specialty != null)
+                            _ProfileChip(
+                                icon: Icons.medical_services_rounded,
+                                label: d.specialty!.nameAr),
+                          if (d.wilayaNameAr != null)
+                            _ProfileChip(
+                                icon: Icons.location_on_rounded,
+                                label: d.wilayaNameAr!),
+                        ],
                       ),
                     ],
                     if (d.bio != null) ...[
@@ -100,6 +106,13 @@ class ProfileScreen extends ConsumerWidget {
                         title: 'الإشعارات',
                         gradient: AppColors.dangerGradient,
                         onTap: () => context.push('/notifications'),
+                      ),
+                      _MenuItem(
+                        icon: Icons.admin_panel_settings_rounded,
+                        title: 'لوحة المشرف',
+                        subtitle: 'إدارة جميع الأطباء والحجوزات',
+                        gradient: AppColors.sidebarGradient,
+                        onTap: () => context.push('/admin'),
                       ),
                     ],
                   ),
@@ -229,4 +242,34 @@ class _MenuItem {
     required this.onTap,
     this.subtitle,
   });
+}
+
+class _ProfileChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _ProfileChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.20),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withOpacity(0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 14),
+          const SizedBox(width: 4),
+          Text(label,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12)),
+        ],
+      ),
+    );
+  }
 }

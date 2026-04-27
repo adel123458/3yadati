@@ -9,15 +9,29 @@ async function main() {
   const specialties = await Promise.all(
     [
       { nameAr: 'طب القلب', nameEn: 'Cardiology', icon: 'heart' },
+      { nameAr: 'طب عام', nameEn: 'General', icon: 'stethoscope' },
       { nameAr: 'طب الأطفال', nameEn: 'Pediatrics', icon: 'child' },
-      { nameAr: 'طب الأسنان', nameEn: 'Dentistry', icon: 'tooth' },
+      { nameAr: 'أمراض النساء والتوليد', nameEn: 'Gynecology', icon: 'gyno' },
+      { nameAr: 'الأمراض الجلدية', nameEn: 'Dermatology', icon: 'skin' },
+      { nameAr: 'جراحة العظام', nameEn: 'Orthopedics', icon: 'bone' },
+      { nameAr: 'أنف وأذن وحنجرة', nameEn: 'ENT', icon: 'ent' },
       { nameAr: 'طب العيون', nameEn: 'Ophthalmology', icon: 'eye' },
-      { nameAr: 'الجلدية', nameEn: 'Dermatology', icon: 'skin' },
-      { nameAr: 'النساء والولادة', nameEn: 'Gynecology', icon: 'gyno' },
+      { nameAr: 'طب الأعصاب', nameEn: 'Neurology', icon: 'brain' },
+      { nameAr: 'الطب النفسي', nameEn: 'Psychiatry', icon: 'mental' },
+      { nameAr: 'طب الأسنان', nameEn: 'Dentistry', icon: 'tooth' },
+      { nameAr: 'أمراض المسالك البولية', nameEn: 'Urology', icon: 'kidney' },
+      { nameAr: 'أمراض الجهاز الهضمي', nameEn: 'Gastroenterology', icon: 'stomach' },
+      { nameAr: 'أمراض الغدد والسكري', nameEn: 'Endocrinology', icon: 'endo' },
+      { nameAr: 'أمراض الصدر والجهاز التنفسي', nameEn: 'Pulmonology', icon: 'lungs' },
+      { nameAr: 'أمراض الروماتيزم', nameEn: 'Rheumatology', icon: 'joint' },
+      { nameAr: 'علاج الأورام', nameEn: 'Oncology', icon: 'onco' },
+      { nameAr: 'الأشعة والتصوير الطبي', nameEn: 'Radiology', icon: 'scan' },
+      { nameAr: 'الجراحة العامة', nameEn: 'Surgery', icon: 'surgery' },
+      { nameAr: 'التغذية والحمية', nameEn: 'Nutrition', icon: 'nutrition' },
     ].map((s) =>
       prisma.specialty.upsert({
         where: { id: s.nameEn },
-        update: {},
+        update: { nameAr: s.nameAr, icon: s.icon },
         create: { id: s.nameEn, ...s },
       }),
     ),
@@ -41,6 +55,8 @@ async function main() {
           yearsOfExperience: 12,
           consultationPrice: 3500,
           currency: 'DZD',
+          wilayaCode: '16',
+          wilayaNameAr: 'الجزائر العاصمة',
           branches: {
             create: [
               {
@@ -178,9 +194,24 @@ async function main() {
     },
   });
 
+  // Admin account for the admin dashboard
+  const adminPasswordHash = await argon2.hash('Admin123!');
+  await prisma.user.upsert({
+    where: { email: 'admin@3yadati.dz' },
+    update: {},
+    create: {
+      email: 'admin@3yadati.dz',
+      phone: '+213500000000',
+      passwordHash: adminPasswordHash,
+      fullName: 'مشرف النظام',
+      role: UserRole.ADMIN,
+    },
+  });
+
   console.log('✅ Seed complete.');
-  console.log('   Doctor login: doctor@3yadati.dz / Password123!');
+  console.log('   Doctor login:  doctor@3yadati.dz / Password123!');
   console.log('   Patient login: patient@3yadati.dz / Password123!');
+  console.log('   Admin login:   admin@3yadati.dz / Admin123!');
 }
 
 main()

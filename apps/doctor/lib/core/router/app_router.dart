@@ -14,6 +14,7 @@ import '../../features/patients/patient_details_screen.dart';
 import '../../features/statistics/statistics_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/notifications/notifications_screen.dart';
+import '../../features/admin/admin_screen.dart';
 import '../../features/shell/shell_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -40,6 +41,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/working-hours', builder: (_, __) => const WorkingHoursScreen()),
       GoRoute(path: '/branches', builder: (_, __) => const BranchesScreen()),
       GoRoute(path: '/notifications', builder: (_, __) => const NotificationsScreen()),
+      GoRoute(path: '/admin', builder: (_, __) => const AdminScreen()),
       GoRoute(
         path: '/patient/:id',
         builder: (_, state) => PatientDetailsScreen(patientId: state.pathParameters['id']!),
