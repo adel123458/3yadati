@@ -23,7 +23,7 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = borderRadius ?? BorderRadius.circular(20);
+    final radius = borderRadius ?? BorderRadius.circular(24);
     return Material(
       color: color ?? AppColors.surface,
       borderRadius: radius,
@@ -31,8 +31,8 @@ class AppCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: radius,
-        splashColor: AppColors.primaryLight.withOpacity(0.4),
-        highlightColor: AppColors.primaryLight.withOpacity(0.2),
+        splashColor: AppColors.violetLight.withOpacity(0.4),
+        highlightColor: AppColors.violetLight.withOpacity(0.2),
         child: Ink(
           decoration: BoxDecoration(
             color: color ?? AppColors.surface,
@@ -41,9 +41,10 @@ class AppCard extends StatelessWidget {
             boxShadow: elevated
                 ? const [
                     BoxShadow(
-                      color: Color(0x0F0F172A),
-                      blurRadius: 18,
-                      offset: Offset(0, 6),
+                      color: AppColors.softShadow,
+                      blurRadius: 24,
+                      offset: Offset(0, 8),
+                      spreadRadius: -4,
                     ),
                   ]
                 : null,

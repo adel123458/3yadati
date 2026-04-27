@@ -17,12 +17,16 @@ class StatisticsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final overviewAsync = ref.watch(overviewProvider);
     final weeklyAsync = ref.watch(weeklyProvider);
+    final width = MediaQuery.sizeOf(context).width;
+    final wide = width >= 900;
+    final cols = wide ? 4 : 2;
+    final aspect = wide ? 1.3 : 1.45;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('الإحصائيات')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(wide ? 24 : 16),
         children: [
           overviewAsync.when(
             data: (o) {
@@ -74,16 +78,16 @@ class StatisticsScreen extends ConsumerWidget {
               ];
               return AnimationLimiter(
                 child: GridView.count(
-                  crossAxisCount: 2,
+                  crossAxisCount: cols,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   mainAxisSpacing: 12,
                   crossAxisSpacing: 12,
-                  childAspectRatio: 1.45,
+                  childAspectRatio: aspect,
                   children: List.generate(cards.length, (i) {
                     return AnimationConfiguration.staggeredGrid(
                       position: i,
-                      columnCount: 2,
+                      columnCount: cols,
                       duration: const Duration(milliseconds: 380),
                       child: ScaleAnimation(
                         scale: 0.95,

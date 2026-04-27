@@ -51,8 +51,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       backgroundColor: AppColors.background,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {},
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.violet,
         foregroundColor: Colors.white,
+        elevation: 6,
         icon: const Icon(Icons.add_rounded),
         label: const Text('موعد جديد', style: TextStyle(fontWeight: FontWeight.w800)),
       ),
@@ -227,7 +228,7 @@ class _ModeSwitcher extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: selected
                       ? const LinearGradient(
-                          colors: AppColors.primaryGradient,
+                          colors: AppColors.sidebarGradient,
                           begin: Alignment.topRight,
                           end: Alignment.bottomLeft,
                         )
@@ -283,7 +284,7 @@ class _WeekStrip extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: isSelected
                     ? const LinearGradient(
-                        colors: AppColors.primaryGradient,
+                        colors: AppColors.sidebarGradient,
                         begin: Alignment.topRight,
                         end: Alignment.bottomLeft,
                       )
